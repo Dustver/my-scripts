@@ -1,0 +1,263 @@
+3proxy SOCKS5 Proxy with Authentication
+
+Prologue
+
+In the following tutorial I will teach you how to compile (install) and
+configure a anonymous 3proxy SOCKS5 proxy with username and password
+authentication on any Linux distribution. Before we start I would like to
+explain a few things. 3proxy is more than a SOCKS proxy software. It can also
+be used like Squid as a HTTP/HTTPS proxy in anonymous and transparent mode.
+SOCKS5 is preferred due to it's ability to tunnel UDP and TCP traffic which
+means it is capable of more than tunneling simple HTTP or HTTPS traffic. A huge
+advantage over Squid or HTTP/HTTPS proxies in general. Unfortunately 3proxy
+isn't available as a precompiled binary and needs to be compiled on the machine
+in order to use it.
+
+The guide is actually not that hard to follow and does not require more than 30
+minutes. If you run into any issues or have questions feel free to leave a
+message below.
+
+
+Tutorial
+
+1. Prerequisite
+In order to compile 3proxy on your machine you need to have the gcc compiler
+installed. The gcc compiler can be easily installed with the package manager of
+your installed Linux distribution. Below I will cover the common commands for
+the most common Linux distributions and their package managers.
+
+RHEL based Linux distributions (e.g CentOS, Fedora, Scientific Linux)
+Terminal
+
+yum -y install gcc make
+
+ 
+Debian/Ubuntu
+Terminal
+
+apt-get install gcc make --yes
+
+ 
+OpenSUSE
+Terminal
+
+zypper install gcc make
+
+ 
+Arch Linux
+Terminal
+
+pacman -S gcc make
+
+ 
+Other Linux distributions & package managers
+Quote:
+Please consult the documentation of the package manager used in your Linux
+distribution.
+
+2. Download 3proxy
+As soon as you have installed gcc on your machine you can download the 3proxy
+source code to your machine and extract it. Work in a temporary directory in
+/tmp so you don't have to worry about cleaning up later on. Follow the steps
+and commands below.
+
+Create a temporary work directory in /tmp
+Terminal
+
+mkdir /tmp/proxy
+
+ 
+Change your current directory to the new temporary work directory
+Terminal
+
+cd /tmp/proxy
+
+ 
+Download the 3proxy source code tarball
+Terminal
+
+wget http://3proxy.ru/0.7.1.2/3proxy-0.7.1.2.tgz
+
+ 
+Extract the downloaded tarball
+Terminal
+
+tar -xvzf 3proxy-0.7.1.2.tgz
+
+ 
+Now you have downloaded the 3proxy source code and extract it and it's time to
+do the next big step; the compilation of the source code to a executable file.
+
+3. Compile 3proxy
+Now it's time to compile the downloaded and extracted source code to a
+executable file that we can use to host the proxy after we created a
+configuration file. Follow the steps below.
+
+Go into the 3proxy directory
+Terminal
+
+cd 3proxy/
+
+ 
+Compile 3proxy to a executable file
+Terminal
+
+make -f Makefile.Linux
+
+ 
+Once the compilation has finished which shouldn't take longer than 5 minutes
+you can move the file into your home directory from where it will be executed
+later on. Run the following commands.
+
+Go into the src folder in 3proxy
+Terminal
+
+cd src/
+
+ 
+Create a new folder for 3proxy in your home directory
+Terminal
+
+mkdir /root/3proxy
+
+ 
+Move the 3proxy executable to the new folder
+Terminal
+
+mv 3proxy /root/3proxy/
+
+
+4. Configuration
+After 3proxy was compiled and it's executable was moved into a directory in
+your home directory specially made for it it's time to create a configuration
+file that suits the needs of a real SOCKS5 proxy with username and password
+authentication and will work as a daemon in the background. Follow the steps
+below.
+
+Go to the 3proxy folder in your home directory
+Terminal
+
+cd /root/3proxy/
+
+ 
+Create a empty 3proxy.cfg file with touch
+Terminal
+
+touch 3proxy.cfg
+
+ 
+Open the 3proxy.cfg file with your favorite text editor (nano in my case)
+Terminal
+
+nano 3proxy.cfg
+
+ 
+Paste the following content into the file
+Code:
+##Main##
+
+#Starting 3proxy as a service/daemon
+daemon
+
+#DNS Servers to resolve domains and for the local DNS cache
+#that providers faster resolution for cached entries
+nserver 91.239.100.100
+nserver 89.233.43.71
+nscache 65536
+
+#Authentication
+#CL = Clear Text, CR = Encrypted Passswords (MD5)
+#Add MD5 users with MD5 passwords with "" (see below)
+#users "user:CR:$1$lFDGlder$pLRb4cU2D7GAT58YQvY49."
+users yourusername:CL:yourpassword
+
+#Logging
+log /var/log/3proxy/3proxy.log D
+logformat "- +_L%t.%. %N.%p %E %U %C:%c %R:%r %O %I %h %T"
+rotate 30
+
+#Auth type
+#auth strong = username & password
+auth strong
+
+#Binding address
+external 0.0.0.0
+internal 0.0.0.0
+
+#SOCKS5
+auth strong
+flush
+allow username
+maxconn 384
+socks -p1080
+
+Adjust options such as "users yourusername:CL:yourpassword" to add your own
+username and password (read the commands above the options), nserver for the
+domain name resolution and the local DNS cache (faster resolution of cached
+entries) and socks -p1080 for the port on which the SOCKS5 proxy will listen.
+Very important change "allow username" to "allow yourusername".
+And "yourusername" should be the username from
+"users yourusername:CL:yourpassword"! So it would be like below. If you don't
+do that the proxy won't accept any login details and will not work! This is a
+ACL to prevent not existing users from login.
+Code:
+[previous code...]
+users amon:CL:password123
+[more previous code...]
+#SOCKS5
+auth strong
+flush
+allow amon
+maxconn 20
+socks -p1080
+
+Save the file and exit the text editor once you have adjusted everything
+necessary.
+
+5. Start it
+Now the proxy is configured and you can start using it. Run the commands below
+inside the 3proxy folder in your home directory in order to start 3proxy as a
+daemon.
+
+Set execute permission on the 3proxy executable (onetime command)
+Terminal
+
+chmod +x 3proxy
+
+ 
+Create the folder for logs
+Terminal
+
+mkdir /var/log/3proxy
+
+ 
+Start 3proxy with the 3proxy.cfg configuration
+Terminal
+
+./3proxy 3proxy.cfg
+
+ 
+Should be up and running after that.
+
+
+Now 3proxy is running as a SOCKS5 proxy in the background as a daemon. 
+
+Unfortunately it lacks a real daemon file for init.d which means the only way
+to stop/restart is to find the process ID (PID) and kill it and then start it
+again if necessary.
+
+That is quite easy. Just run the commands below.
+
+Get the 3proxy PID
+Terminal
+
+ps ax | grep 3proxy
+
+ 
+Kill 3proxy
+Terminal
+
+kill -9 3proxypid
+
+ 
+3proxypid is the PID from "Get the 3proxy PID".

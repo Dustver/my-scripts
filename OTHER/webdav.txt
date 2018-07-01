@@ -1,0 +1,41 @@
+Подключим Яндекс.Диск как файловую систему, например, в Ubuntu.
+
+Установим пакет davfs2:
+
+# apt-get install davfs2
+
+
+
+Создадим точку монтирования:
+
+# mkdir /mnt/yandex.disk
+
+
+
+Примонтируем наш диск, введя логин и пароль от нашей почты на Я.ру (use https, Luke!):
+
+# mount -t davfs https://webdav.yandex.ru /mnt/yandex.disk/
+
+
+
+Убедимся, что всё в порядке:
+
+# df -h /mnt/yandex.disk/
+Filesystem            Size  Used Avail Use% Mounted on
+https://webdav.yandex.ru
+                       10G  7.7M   10G   1% /mnt/yandex.disk
+
+
+
+10 гигабайт — всегда хорошо, для каких-нибудь бэкапов или быстрого обмена файлов, особенно, если это сервер.
+
+Простой скрипт для автоматического монтирования (спасибо uscr via habrahabr.ru/post/142067/#comment_4752116):
+
+#!/usr/bin/expect
+spawn mount.davfs https://webdav.yandex.ru /clouds/yandex.disk/
+expect "Username:"
+send "USERNAME@yandex.ru\r"
+expect "Password:"
+send "PASS\r"
+expect eof
+

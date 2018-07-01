@@ -1,0 +1,40 @@
+Автозапуск смены TTL на ОС с systemd (Arch, Ubuntu 16.04 и выше, Linux Mint 18 и др.).
+
+
+Создаёте скрипт смены ttl. Например (вводите в терминале):
+$ sudo nano /root/ttl.sh
+
+Содержимое ttl.sh:
+echo 65 > /proc/sys/net/ipv4/ip_default_ttl
+
+
+Сохраняете и закрываете.
+
+Далее создаете файл:
+$ sudo nano /etc/systemd/system/ttl.service
+
+Содержимое ttl.service:
+[Unit]
+Description=TTL65
+Before=NetworkManager.service
+
+[Service]
+User=root
+RemainAfterExit=yes
+Type=oneshot
+ExecStart=/bin/bash '/root/ttl.sh'
+
+[Install]
+WantedBy=multi-user.target
+
+Сохраняете, закрываете.
+
+Далее вводите в терминале:
+$ sudo systemctl enable ttl.service
+
+Если всё ок - то терминал ничего не должен выдать в ответ.
+При загрузке ОС пишет ошибку доступа в ip_default_ttl. Не обращайте внимания. Всё равно работает.
+
+Пояснения:
+nano - консольный текстовый редактор. Можете любой использовать. Наример, gedit, leafpad, vim.
+Before=NetworkManager.service - скрипт выполняется до загрузки сетевого менеджера. Сетевой менеджер у Вас может быть другим. В Убунту и Минт вроде бы стоит NetworkManager. Проверить можете командой systemctl status NetworkManager.service

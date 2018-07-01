@@ -1,0 +1,1 @@
+dpkg -S /usr/bin/FILENAME | awk -F: '{print $1}' | xargs dpkg -s
