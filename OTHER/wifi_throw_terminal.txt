@@ -1,0 +1,69 @@
+подключение wifi через терминал:
+1 способ ===============
+
+iwconfig
+sudo ip link set wlan0 up - поднять интерфейс
+
+если нет пароля:
+sudo iw dev wlan0 connect [SSID]
+
+если WEP:
+sudo iw dev wlan0 connect [SSID] key 0:[PASSWORD]
+
+для WPA :
+через wpa_supplicant
+
+sudo vim /etc/wpa_supplicant/wpa_supplicant.conf
+	добавить :
+	network={
+		ssid="[ssid]"
+		psk="[password]"
+		priority=1
+	}
+
+sudo wpa_supplicant -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
+
+sudo dhcpcd wlan0
+
+в iwconfig покажется ip адрес
+======================
+
+2 способ ================
+
+lshw -C network
+	logical name wlan0 or wlp1s0...
+
+iwlist wlan0 scan - сканирование по не скрытым сетям
+
+теперь сгенерируем ключ wpa-psk с помощью wpa_passphrase:
+wpa_passphrase [ssid] [password]
+
+
+sudo vim /etc/network/interfaces :
+	auto lo
+	iface lo inet loopback
+
+	auto wlan0
+	iface wlan0 inet dhcp
+	wpa-ssid [ssid]
+	wpa-psk [ключ из wpa_passphrase]
+
+sudo /etc/init.d/networking restart
+========================
+
+3 способ ===============
+
+apt install wpasupplicant
+wpa_passphrase [SSID] [password]
+sudo vim /etc/wpa_supplicant/wpa_supplicant.conf
+	#вывод wpa_passphrase мы скопируем в /etc/wpa_supplicant/wpa_supplicant.conf
+wpa_supplicant -D wext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
+
+подключение к роутеру происходит последней коммандой
+
+если есть dhcp на роутере, то:
+dhclient wlan0
+
+если нет, то :
+ifconfig wlan0 192.168.0.2/24 
+route add default gw 192.168.0.1

@@ -1,0 +1,8 @@
+﻿Установка Katoolin
+
+Для установки выполните следующие команды в консоли:
+
+$ sudo apt-get install git
+$ git clone https://github.com/LionSec/katoolin.git
+$ sudo cp katoolin/katoolin.py /usr/bin/katoolin
+$ chmod +x /usr/bin/katoolin

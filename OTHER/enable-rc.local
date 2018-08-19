@@ -1,0 +1,22 @@
+
+
+With systemd 188-2, systemd complains about having no [Install] section and as such being unable to enable the rc.local service. Might have been the case with earlier versions but since Arch devs only recently announced systemd will become the default I am fixing up my system.
+
+To fix that, just add a section for the multiuser target in /etc/systemd/system/rc-local.service:
+
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=/etc/rc.local
+
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
+
+Create the /etc/rc.local script and make it executable with chmod +x /etc/rc.local
