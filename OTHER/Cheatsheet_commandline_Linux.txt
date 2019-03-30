@@ -1,4 +1,9 @@
 Шпаргалка по работе в командной строке Linux
+
+автодополнение в bash:
+    sudo apt install bash-completion
+    echo set completion-ignore-case on | sudo tee -a /etc/inputrc
+
           Переход в терминал:                                                     *Alr+Ctr+F1(-F6)*
 Переключение между текстовыми консолями: *Alr+F1(-F6)*
 Переход в графический режим:                                 *Alr+F7*
